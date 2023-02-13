@@ -39,6 +39,26 @@ type UploadedFile struct {
 	FileSize         int64
 }
 
+// UploadOneFile is just a convenience method that calls UploadFiles, but expects only one file to
+// be in the upload.
+func (t *Tools) UploadOneFile(r *http.Request, uploadDir string, rename ...bool) (*UploadedFile, error) {
+	renameFile := true
+	if len(rename) > 0 {
+		renameFile = rename[0]
+	}
+
+	files, err := t.UploadFiles(r, uploadDir, renameFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return files[0], nil
+}
+
+// UploadFiles uploads one or more file to a specified directory, and gives the files a random name.
+// It returns a slice containing the newly named files, the original file names, the size of the files,
+// and potentially an error. If the optional last parameter is set to true, then we will not rename
+// the files, but will use the original file names.
 func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) ([]*UploadedFile, error) {
 	renameFile := true
 	if len(rename) > 0 {
@@ -59,7 +79,7 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
 
 	for _, fHeaders := range r.MultipartForm.File {
 		for _, hdr := range fHeaders {
-			uploadedFiles, err := func(uploadedFiles []*UploadedFile) ([]*UploadedFile, error) {
+			uploadedFiles, err = func(uploadedFiles []*UploadedFile) ([]*UploadedFile, error) {
 				var uploadedFile UploadedFile
 				infile, err := hdr.Open()
 				if err != nil {
@@ -93,11 +113,18 @@ func (t *Tools) UploadFiles(r *http.Request, uploadDir string, rename ...bool) (
 					return nil, errors.New("the uploaded file type is not permitted")
 				}
 
+				_, err = infile.Seek(0, 0)
+				if err != nil {
+					return nil, err
+				}
+
 				if renameFile {
 					uploadedFile.NewFileName = fmt.Sprintf("%s%s", t.RandomString(25), filepath.Ext(hdr.Filename))
 				} else {
 					uploadedFile.NewFileName = hdr.Filename
 				}
+
+				uploadedFile.OriginalFileName = hdr.Filename
 
 				// Save to disk
 				var outfile *os.File
