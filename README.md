@@ -1,4 +1,4 @@
-# toolkit
+# Toolkit
 
 This is the course [`Building a module in Go`](https://www.udemy.com/course/building-a-module-in-go-golang/learn/lecture/32938420#overview)
 
@@ -32,7 +32,7 @@ The included tools are:
 - [ ] Download a static file
 - [X] Get a random string of length n
 - [ ] Post JSON to a remote service 
-- [ ] Create a directory, including all parent directories, if it does not already exist
+- [X] Create a directory, including all parent directories, if it does not already exist
 - [ ] Create a URL safe slug from a string
 
 Installation
@@ -44,6 +44,6 @@ Installation
 The toolkit package won't be added in to app/go.mod due to this workspace
 
 ```bash
-# how to generate this app.work
+# how to generate this go.work
 $ go work init toolkit app
 ```
